@@ -16,12 +16,16 @@ xrot = yrot = zrot = 0.0
 dx = 0.0
 dy = 0.0
 dz = 0.0
+tx = 0.0
+ty = 0.0
+translador = 0.0
+zoom = -50.0
 
 
 def loadFile():
-    reader = png.Reader(filename='dado.png')
-    global listapixel, metadata
-    w, h, pixels, metadata = reader.read_flat()
+    reader = png.Reader(filename='caiomini.png')
+    global listapixel, metadata, imagem_width, imagem_height
+    imagem_width, imagem_height, pixels, metadata = reader.read_flat()
     listapixel = pixels.tolist()
 
 
@@ -67,14 +71,15 @@ def preencherComZeroAEsquerda(cor):
 
 
 def DrawGLScene():
-    global xrot, yrot, zrot, texture
+    global xrot, yrot, zrot, texture, tx, ty, zoom
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
     glLoadIdentity()
 
     glClearColor(0.5, 0.5, 0.5, 1.0)
 
-    glTranslatef(0.0, 0.0, -50.0)
+    # glTranslatef(0.0, 0.0, -50.0)
+    glTranslatef(tx, ty, zoom)
 
     glRotatef(xrot, 1.0, 0.0, 0.0)
     glRotatef(yrot, 0.0, 1.0, 0.0)
@@ -82,8 +87,8 @@ def DrawGLScene():
 
     glBegin(GL_QUADS)
     cont = 0
-    for i in range(0, 240, 2):
-        for z in range(0, 20, 2):
+    for z in range(0, imagem_height*2, 2):
+        for i in range(0, imagem_width*2, 2):
             cor = pegarPixelAtual(cont)
             cor = preencherComZeroAEsquerda(cor)
             cont = cont + 1
@@ -132,40 +137,59 @@ def DrawGLScene():
 
 
 def keyPressed(tecla, x, y):
-    global dx, dy, dz
+    global dx, dy, dz, tx, ty, translador
     if tecla == ESCAPE:
         glutLeaveMainLoop()
     elif tecla == 'x' or tecla == 'X':
         dx = 1.0
         dy = 0
         dz = 0
+        translador = 0
     elif tecla == 'y' or tecla == 'Y':
         dx = 0
         dy = 1.0
         dz = 0
+        translador = 0
     elif tecla == 'z' or tecla == 'Z':
         dx = 0
         dy = 0
         dz = 1.0
+        translador = 0
+    elif tecla == 'm' or tecla == 'M':
+        dx = 0
+        dy = 0
+        dz = 0
+        translador = 1
+
+
+def mouseClicked(botao, estado_botao, x, y):
+    global zoom
+    if botao == 3 and estado_botao == 0:
+        zoom = zoom + 1.0
+    if botao == 4 and estado_botao == 0:
+        zoom = zoom - 1.0
 
 
 def teclaEspecialPressionada(tecla, x, y):
-    global xrot, yrot, zrot, dx, dy, dz
+    global xrot, yrot, zrot, dx, dy, dz, tx, ty, translador
     if tecla == GLUT_KEY_LEFT:
         print "ESQUERDA"
         xrot -= dx  # X rotation
         yrot -= dy  # Y rotation
         zrot -= dz
+        tx -= translador
     elif tecla == GLUT_KEY_RIGHT:
         print "DIREITA"
         xrot += dx  # X rotation
         yrot += dy  # Y rotation
         zrot += dz
+        tx += translador
     elif tecla == GLUT_KEY_UP:
         print "CIMA"
-        glutPostRedisplay()
+        ty += translador
     elif tecla == GLUT_KEY_DOWN:
         print "BAIXO"
+        ty -= translador
 
 
 def main():
@@ -175,7 +199,7 @@ def main():
     glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH)
 
     # get a 640 x 480 window
-    glutInitWindowSize(800, 600)
+    glutInitWindowSize(1024, 768)
 
     # the window starts at the upper left corner of the screen
     glutInitWindowPosition(0, 0)
@@ -193,10 +217,12 @@ def main():
     # Register the function called when the keyboard is pressed.
     glutKeyboardFunc(keyPressed)
 
+    glutMouseFunc(mouseClicked)
+
     glutSpecialFunc(teclaEspecialPressionada)
 
     # Initialize our window.
-    InitGL(800, 600)
+    InitGL(1024, 768)
 
     # Start Event Processing Engine
     glutMainLoop()
