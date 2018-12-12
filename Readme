@@ -1,1 +1,12 @@
+Voxel.py
 
+Trabalho final de Computação Gráfica do professor Renato Mauro.
+
+O objetivo desse trabalho construir um sistema em Python que receba um arquivo de imagem 2d e transforme essa imagem em 3d.
+As cores dos pixels da imagem original são interpretadas e recebem alturas diferentes na imagem 3d, de forma que cada cor tenha uma altura única.
+
+Para rotacionar o componente é necessário apertar um dos botões relativos aos eixos de um plano cartesiano 3d (x, y, z). Após selecionar o eixo, aumentar ou reduzir a rotação com as setas direcionais esquerda e direita.
+
+Para transladar o componente, apertar a tecla M (move) e utilizar as setas direcionais.
+
+Para ajustar o zoom da câmera, usar o scroll do mouse.
