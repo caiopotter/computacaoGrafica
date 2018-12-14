@@ -25,7 +25,7 @@ def LoadTextures():
     
     i = 0
     texture = glGenTextures(6)
-    nome = ('blue.png', 'red.png', 'purple.png', 'brown.png', 'green.png', 'yellow.png')
+    nome = ('diamong.png', 'gold.png', 'stone.png', 'redstone.png', 'lapis.png', 'iron.png')
 
     for i in range(6):
         glBindTexture(GL_TEXTURE_2D, texture[i])
