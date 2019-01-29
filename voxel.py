@@ -198,7 +198,7 @@ def main():
 
     glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH)
 
-    # get a 640 x 480 window
+    # get a 1024 x 768 window
     glutInitWindowSize(1024, 768)
 
     # the window starts at the upper left corner of the screen
