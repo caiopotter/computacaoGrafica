@@ -11,7 +11,7 @@ ESCAPE = '\033'
 # Number of the glut window.
 window = 0
 
-# Rotations for cube. 
+# Rotations for cube.
 xrot = yrot = zrot = 0.0
 dx = 0.0
 dy = 0.0
@@ -87,11 +87,13 @@ def DrawGLScene():
 
     glBegin(GL_QUADS)
     cont = 0
+    obj_file = open("C:\\Downloads\\teste.obj", "w+")
+    obj_file.write('mtllib teste.mtl\n\n')
+    mtl_file = open("C:\\Downloads\\teste.mtl", "w+")
     for z in range(0, imagem_height*2, 2):
         for i in range(0, imagem_width*2, 2):
             cor = pegarPixelAtual(cont)
             cor = preencherComZeroAEsquerda(cor)
-            cont = cont + 1
 
             y = int(str(cor[0]) + str(cor[1]) + str(cor[2])) / 100000000.0
             glColor(float(cor[0])/255.0, float(cor[1]) / 255.0, float(cor[2]) / 255.0, 1.0)
@@ -131,9 +133,46 @@ def DrawGLScene():
             glVertex3f(i-1, y+1, z+1)
             glVertex3f(i-1, y+1, z-1)
 
-    glEnd()  # Done Drawing The Cube
+            draw_in_file(obj_file, i, y, z, cont)
+            fill_mtl(mtl_file, cont, float(cor[0])/255.0, float(cor[1]) / 255.0, float(cor[2]) / 255.0)
 
-    glutSwapBuffers()
+            cont = cont + 1
+
+    glEnd()  # Done Drawing The Cube
+    mtl_file.close()
+    obj_file.close()
+    sys.exit()
+
+    # glutSwapBuffers()
+
+
+def fill_mtl(m, cont, r, g, b):
+    m.write('newmtl texture%s\n' % (str(cont)))
+    m.write('Ka %s %s %s\n' % (str(r), str(g), str(b)))
+    m.write('Kd %s %s %s\n' % (str(r), str(g), str(b)))
+    m.write('illum 1\n\n')
+
+
+def draw_in_file(obj_file, x, y, z, i):
+
+    obj_file.write('v %s 0.0 %s\n' % (str(x - 1), str(z + 1)))
+    obj_file.write('v %s 0.0 %s\n' % (str(x + 1), str(z + 1)))
+    obj_file.write('v %s %s %s\n' % (str(x + 1), str(y + 1), str(z + 1)))
+    obj_file.write('v %s %s %s\n' % (str(x - 1), str(y + 1), str(z + 1)))
+
+    obj_file.write('v %s 0.0 %s\n' % (str(x - 1), str(z - 1)))
+    obj_file.write('v %s %s %s\n' % (str(x - 1), str(y + 1), str(z - 1)))
+    obj_file.write('v %s %s %s\n' % (str(x + 1), str(y + 1), str(z - 1)))
+    obj_file.write('v %s 0.0 %s\n\n' % (str(x + 1), str(z - 1)))
+
+    obj_file.write('g face%s\n' % (str(i)))
+    obj_file.write('usemtl texture%s\n' % (str(i)))
+    obj_file.write('f %s// %s// %s// %s//\n' % (str(1 + (8 * i)), str(2 + (8 * i)), str(3 + (8 * i)), str(4 + (8 * i))))
+    obj_file.write('f %s// %s// %s// %s//\n' % (str(5 + (8 * i)), str(6 + (8 * i)), str(7 + (8 * i)), str(8 + (8 * i))))
+    obj_file.write('f %s// %s// %s// %s//\n' % (str(1 + (8 * i)), str(2 + (8 * i)), str(8 + (8 * i)), str(5 + (8 * i))))
+    obj_file.write('f %s// %s// %s// %s//\n' % (str(2 + (8 * i)), str(8 + (8 * i)), str(7 + (8 * i)), str(3 + (8 * i))))
+    obj_file.write('f %s// %s// %s// %s//\n' % (str(3 + (8 * i)), str(7 + (8 * i)), str(6 + (8 * i)), str(4 + (8 * i))))
+    obj_file.write('f %s// %s// %s// %s//\n' % (str(1 + (8 * i)), str(5 + (8 * i)), str(6 + (8 * i)), str(4 + (8 * i))))
 
 
 def keyPressed(tecla, x, y):
