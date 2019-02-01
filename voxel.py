@@ -1,28 +1,31 @@
 import sys
 import png
+import time
 
 
 def loadFile():
-    arquivoFonte = None
     try:
         arquivoFonte = sys.argv[1]
     except IndexError:
-        arquivoFonte = 'D:\\Users\\cpttr\\Downloads\\grafica\\caiomini.png'
+        arquivoFonte = 'D:\\CEFET-RJ\\Representacao3DArquivo\\capt.png'
     reader = png.Reader(filename=arquivoFonte)
-    global listapixel, metadata, imagem_width, imagem_height
+    global listapixel, metadata, imagem_width, imagem_height, indice_rgbs
     imagem_width, imagem_height, pixels, metadata = reader.read_flat()
     listapixel = pixels.tolist()
-    criar_indice_texturas()
+    indice_rgbs = criar_indice_texturas()
 
 
 def criar_indice_texturas():
     cont = 0
-    index_file = open("D:\\gitCaio\\results\\index.txt", "w+")
+    pixels_rgb = []
     for z in range(0, imagem_height*2, 2):
         for i in range(0, imagem_width*2, 2):
             cor = pegarPixelAtual(cont)
-            index_file.write('%s %s %s' % (str(cor[0]), str(cor[1]), str(cor[2])))
+            pixels_rgb.append('%s %s %s' % (str(cor[0]), str(cor[1]), str(cor[2])))
             cont = cont + 1
+
+    return list(set(pixels_rgb))
+
 
 def pegarPixelAtual(index):
     if metadata['alpha']:
@@ -42,33 +45,34 @@ def preencherComZeroAEsquerda(cor):
 
 def DrawScene():
     cont = 0
-    texturaAtual = [None, None, None, 0]
-    obj_file = open("D:\\gitCaio\\results\\teste.obj", "w+")
+    obj_file = open("D:\\gitCaio\\teste.obj", "w+")
     obj_file.write('mtllib teste.mtl\n\n')
-    mtl_file = open("D:\\gitCaio\\results\\teste.mtl", "w+")
+    mtl_file = open("D:\\gitCaio\\teste.mtl", "w+")
+    preencher_mtl_baseado_em_index(mtl_file)
     for z in range(0, imagem_height*2, 2):
         for i in range(0, imagem_width*2, 2):
             cor = pegarPixelAtual(cont)
+            numero_textura = pegar_numero_textura(cor)
             cor = preencherComZeroAEsquerda(cor)
-            y = int(str(cor[0]) + str(cor[1]) + str(cor[2])) / 100000000.0
-            if((texturaAtual != None) and (texturas_identicas(texturaAtual, [float(cor[0])/255.0, float(cor[1]) / 255.0, float(cor[2]) / 255.0]))):
-                draw_in_file(obj_file, i, y, z, cont, texturaAtual[3])
-            else:
-                texturaAtual = fill_mtl(mtl_file, cont, float(cor[0])/255.0, float(cor[1]) / 255.0, float(cor[2]) / 255.0)
-                draw_in_file(obj_file, i, y, z, cont)
-            
+            y = int(str(cor[0]) + str(cor[1]) + str(cor[2])) / 10000000.0
+
+            draw_in_file(obj_file, i, y, z, cont, numero_textura)
+
             cont = cont + 1
 
     mtl_file.close()
     obj_file.close()
-    sys.exit()
 
 
-def texturas_identicas(texturaAtual, proximaTextura):
-    if((texturaAtual[0] == proximaTextura[0]) and (texturaAtual[1] == proximaTextura[1]) and (texturaAtual[2] == proximaTextura[2])):
-        return True
-    else:
-        return False
+def preencher_mtl_baseado_em_index(mtl_file):
+    for i, rgb in enumerate(indice_rgbs):
+        mtl_file.write('newmtl texture%s\n' % (str(i)))
+        array_rgb = rgb.split()
+        mtl_file.write('Ka %s %s %s\n' % (str(float(array_rgb[0])/255.0), str(float(array_rgb[1])/255.0),
+                                          str(float(array_rgb[2])/255.0)))
+        mtl_file.write('Kd %s %s %s\n' % (str(float(array_rgb[0])/255.0), str(float(array_rgb[1])/255.0),
+                                          str(float(array_rgb[2])/255.0)))
+        mtl_file.write('illum 1\n\n')
 
 
 def fill_mtl(m, cont, r, g, b):
@@ -79,7 +83,7 @@ def fill_mtl(m, cont, r, g, b):
     return [r, g, b, cont]
 
 
-def draw_in_file(obj_file, x, y, z, i, texturaAnterior=None):
+def draw_in_file(obj_file, x, y, z, i, numero_textura):
 
     obj_file.write('v %s 0.0 %s\n' % (str(x - 1), str(z + 1)))
     obj_file.write('v %s 0.0 %s\n' % (str(x + 1), str(z + 1)))
@@ -93,10 +97,7 @@ def draw_in_file(obj_file, x, y, z, i, texturaAnterior=None):
 
     obj_file.write('g face%s\n' % (str(i)))
 
-    if(texturaAnterior != None):
-        obj_file.write('usemtl texture%s\n' % (str(texturaAnterior)))
-    else:
-        obj_file.write('usemtl texture%s\n' % (str(i)))
+    obj_file.write('usemtl texture%s\n' % (str(numero_textura)))
     obj_file.write('f %s// %s// %s// %s//\n' % (str(1 + (8 * i)), str(2 + (8 * i)), str(3 + (8 * i)), str(4 + (8 * i))))
     obj_file.write('f %s// %s// %s// %s//\n' % (str(5 + (8 * i)), str(6 + (8 * i)), str(7 + (8 * i)), str(8 + (8 * i))))
     obj_file.write('f %s// %s// %s// %s//\n' % (str(1 + (8 * i)), str(2 + (8 * i)), str(8 + (8 * i)), str(5 + (8 * i))))
@@ -105,11 +106,20 @@ def draw_in_file(obj_file, x, y, z, i, texturaAnterior=None):
     obj_file.write('f %s// %s// %s// %s//\n' % (str(1 + (8 * i)), str(5 + (8 * i)), str(6 + (8 * i)), str(4 + (8 * i))))
 
 
+def pegar_numero_textura(rgb_atual):
+    for i, rgb in enumerate(indice_rgbs):
+        if rgb_atual == map(int, rgb.split()):
+            return i
+
+
 def main():
+    start = time.time()
     loadFile()
     DrawScene()
+    end = time.time()
+    print 'tempo de execucao: %s' % (str(end - start))
+    sys.exit()
 
 
-# Print message to console, and kick off the main to get it rolling.
 if __name__ == "__main__":
     main()
