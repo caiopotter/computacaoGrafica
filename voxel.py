@@ -23,8 +23,8 @@ def criar_indice_texturas():
             cor = pegarPixelAtual(cont)
             pixels_rgb.append('%s %s %s' % (str(cor[0]), str(cor[1]), str(cor[2])))
             cont = cont + 1
-
-    return list(set(pixels_rgb))
+    lista_rgb = list(set(pixels_rgb))
+    return {v: i for i, v in enumerate(lista_rgb)}
 
 
 def pegarPixelAtual(index):
@@ -65,7 +65,7 @@ def DrawScene():
 
 
 def preencher_mtl_baseado_em_index(mtl_file):
-    for i, rgb in enumerate(indice_rgbs):
+    for rgb, i in indice_rgbs.iteritems():
         mtl_file.write('newmtl texture%s\n' % (str(i)))
         array_rgb = rgb.split()
         mtl_file.write('Ka %s %s %s\n' % (str(float(array_rgb[0])/255.0), str(float(array_rgb[1])/255.0),
@@ -107,9 +107,7 @@ def draw_in_file(obj_file, x, y, z, i, numero_textura):
 
 
 def pegar_numero_textura(rgb_atual):
-    for i, rgb in enumerate(indice_rgbs):
-        if rgb_atual == map(int, rgb.split()):
-            return i
+    return indice_rgbs.get(' '.join(map(str, rgb_atual)))
 
 
 def main():
