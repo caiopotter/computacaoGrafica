@@ -7,7 +7,7 @@ def loadFile():
     try:
         arquivoFonte = sys.argv[1]
     except IndexError:
-        arquivoFonte = 'D:\\CEFET-RJ\\Representacao3DArquivo\\capt.png'
+        arquivoFonte = '.\png_exemplos\\dado.png'
     reader = png.Reader(filename=arquivoFonte)
     global listapixel, metadata, imagem_width, imagem_height, indice_rgbs
     imagem_width, imagem_height, pixels, metadata = reader.read_flat()
